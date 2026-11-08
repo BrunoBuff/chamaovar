@@ -1,58 +1,73 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# ChamaoVar 🟥
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Um "VAR" para os seus lances esportivos.
 
-## About Laravel
+Deixe o celular gravando o jogo pelo navegador e, quando acontecer um lance, toque em **"CHAMA O VAR"**: os **últimos 10 segundos antes do clique** viram um replay salvo na sua conta. Só você vê os seus replays.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+> Projeto de estudo/hobby em Laravel, em desenvolvimento.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Como vai funcionar
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1. Você cria uma conta e faz login.
+2. No celular, abre o **Modo câmera** do site. A câmera fica gravando sem parar, guardando só os segundos mais recentes.
+3. Aconteceu o lance? Toque em **"CHAMA O VAR"**. O trecho é enviado automaticamente, sem escolher arquivo.
+4. O servidor corta exatamente os **últimos 10 segundos** e salva o replay na sua conta.
+5. No painel, você assiste aos seus replays. Os vídeos ficam guardados em área privada e só o dono tem acesso.
 
-## Learning Laravel
+Também será possível:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- enviar um vídeo pelo **upload web** (ele é cortado da mesma forma);
+- usar um **celular fixo no campo** (num tripé, por exemplo), autenticado por um token próprio do aparelho, sem precisar do login de uma pessoa.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Andamento
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+| Etapa | Status |
+|---|---|
+| 1. Banco de dados: tabelas, models, factories e testes | ✅ Concluída |
+| 2. Upload web, painel e reprodução (só o dono assiste) | ⏳ Próxima |
+| 3. Corte automático dos últimos 10 segundos (FFmpeg) | ⏳ |
+| 4. Modo câmera no navegador + botão "CHAMA O VAR" | ⏳ |
+| 5. Cadastro de celulares com token | ⏳ |
 
-## Agentic Development
+## Tecnologias
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+- [Laravel 13](https://laravel.com) com [Breeze](https://laravel.com/docs/starter-kits) (Blade)
+- PHP 8.3
+- SQLite
+- [Pest](https://pestphp.com) para os testes
+- [FFmpeg](https://ffmpeg.org) para cortar os vídeos (a partir da etapa 3)
+
+## Como rodar na sua máquina
+
+Pré-requisitos: PHP 8.3, Composer e Node.js (no Windows, o [Laragon](https://laragon.org) já traz tudo isso).
 
 ```bash
-composer require laravel/boost --dev
+# 1. Baixar o projeto
+git clone https://github.com/BrunoBuff/chamaovar.git
+cd chamaovar
 
-php artisan boost:install
+# 2. Instalar dependências, criar o .env, gerar a chave, criar as tabelas e compilar o front
+composer run setup
+
+# 3. Subir o servidor de desenvolvimento
+composer run dev
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+O banco é SQLite, guardado em `database/database.sqlite`. Se durante o `setup` o terminal perguntar se quer criar esse arquivo, responda `yes`.
 
-## Contributing
+## Testes
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+php artisan test
+```
 
-## Code of Conduct
+Os testes usam um banco SQLite em memória, então nunca mexem nos seus dados.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Segurança
 
-## Security Vulnerabilities
+- Os vídeos ficam fora da pasta pública (`storage/app/private`) e são entregues por um controller que confere se quem pede é o dono.
+- O token de cada celular é mostrado uma única vez; o banco guarda apenas o hash (SHA-256) dele.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Licença
 
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Projeto pessoal de estudo, distribuído sob a licença [MIT](https://opensource.org/licenses/MIT).

@@ -160,26 +160,41 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 
 # ChamaoVar — Contexto do projeto
 
-Projeto de estudo/hobby em Laravel para centralizar vídeos de lances esportivos gravados por celulares.
+Projeto de estudo/hobby em Laravel: um "VAR" para lances esportivos. O celular fica gravando pelo navegador e, quando o usuário toca em **"CHAMA O VAR"**, os **últimos 10 segundos antes do clique** viram um replay salvo na conta dele.
 
 ## Stack
 
-- Laravel com Breeze (Blade)
-- Banco: SQLite ou MySQL (via Laragon, no Windows)
+- Laravel 13 com Breeze (Blade), PHP 8.3
+- Banco: SQLite (`database/database.sqlite`); os testes usam SQLite em memória
+- Testes: Pest 4
+- FFmpeg (a partir da etapa 3) para cortar os últimos 10 segundos
 
 ## Fluxo principal
 
 1. O usuário se cadastra e faz login (Breeze).
-2. O usuário cadastra o celular (device). Cada aparelho tem um **token único**, guardado no banco **apenas como hash** (nunca em texto puro).
-3. O usuário envia vídeos por **upload web** ou por uma **API simples** (autenticada pelo token do aparelho).
-4. No dashboard, **só o dono vê os próprios vídeos**.
-5. Os vídeos ficam em **storage privado** (fora de `public/`) e são servidos por um **controller que confere se quem pede é o dono**.
+2. No celular, abre o **Modo câmera** no navegador: a câmera fica gravando continuamente, guardando só os segundos mais recentes (blocos de ~10s; mantém os 2 últimos).
+3. Ao tocar em **"CHAMA O VAR"**, a página envia automaticamente o trecho recente; o servidor corta (FFmpeg) os **últimos 10 segundos antes do clique** e salva como um replay na conta do usuário. A câmera continua gravando, então dá para chamar o VAR várias vezes.
+4. Também é possível enviar um vídeo por **upload web**; ele é cortado da mesma forma.
+5. Um celular fixo (device) pode usar o Modo câmera autenticado pelo seu **token único** (guardado no banco **apenas como hash** SHA-256, nunca em texto puro), sem login de pessoa. Os replays vão para a conta do dono do device.
+6. No dashboard, **só o dono vê os próprios replays**.
+7. Os vídeos ficam em **storage privado** (fora de `public/`) e são servidos por um **controller que confere se quem pede é o dono** (responde 404 para quem não é).
 
-## Entidades esperadas
+Limitações conhecidas: a câmera do navegador exige HTTPS (exceto em `localhost`) e só grava com a página aberta. A câmera nativa do celular não permite envio automático (o iOS não tem esse gatilho), por isso o Modo câmera é feito no próprio site.
 
-- `users` (Breeze)
-- `devices` — pertence a um usuário; guarda o hash do token
-- `videos` — pertence a um usuário (e opcionalmente a um device); guarda o caminho do arquivo no storage privado
+## Entidades
+
+- `users` (Breeze) — tem muitos `devices` e muitos `videos`
+- `devices` — pertence a um usuário; guarda `name`, `token_hash` (unique) e `last_used_at`. Apagar o usuário apaga os devices (cascade).
+- `videos` — pertence a um usuário e opcionalmente a um device; guarda `path` (storage privado), `original_name`, `mime_type`, `size` e `title`. Apagar o usuário apaga os vídeos (cascade); apagar o device mantém o vídeo com `device_id = null`.
+- Colunas que talvez entrem depois em `videos`: `duration` e `status` (processando/pronto).
+
+## Etapas
+
+1. ✅ Banco de dados: migrations, Models, factories e testes de devices e videos
+2. Upload web + dashboard + assistir (com conferência de dono)
+3. FFmpeg: cortar os últimos 10 segundos
+4. Modo câmera no navegador + botão "CHAMA O VAR"
+5. Cadastro de devices + token (celular fixo no campo)
 
 ## Preferências de trabalho
 
